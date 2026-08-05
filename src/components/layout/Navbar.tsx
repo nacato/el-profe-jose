@@ -15,7 +15,7 @@ export function Navbar() {
         <nav className="hidden md:flex items-center gap-6 text-sm text-zinc-400">
           {/* Cambiamos a /#servicios para que funcione desde cualquier página */}
           <a href="/#servicios" className="hover:text-emerald-400 transition-colors">Servicios</a>
-          <a href="/simulador" className="hover:text-emerald-400 transition-colors">Simulador</a>
+          <a href="/simulador" className="hover:text-emerald-400 transition-colors">Cursos </a>
           <a href="/#contacto" className="hover:text-emerald-400 transition-colors">Contacto</a>
         </nav>
 
