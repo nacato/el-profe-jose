@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Wrench, ArrowLeft } from 'lucide-react'
 import { MotionWrapper } from '@/components/shared/MotionWrapper'
 
-export const Route = createFileRoute('/simulador')({
+export const Route = createFileRoute('/cursos')({
   component: SimulatorPage,
 })
 
