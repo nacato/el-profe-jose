@@ -1,4 +1,4 @@
-import { Home, LayoutGrid, BookOpen, Phone } from 'lucide-react'
+import { Home, LayoutGrid, Calculator, Phone } from 'lucide-react'
 
 export function MobileNav() {
   return (
@@ -12,9 +12,9 @@ export function MobileNav() {
           <LayoutGrid className="w-5 h-5" />
           <span className="text-[10px] font-medium">Servicios</span>
         </a>
-        <a href="/cursos" className="flex flex-col items-center justify-center gap-1 text-zinc-400 active:text-emerald-400 active:scale-95 transition-all">
-          <BookOpen className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Cursos</span>
+        <a href="/simulador" className="flex flex-col items-center justify-center gap-1 text-zinc-400 active:text-emerald-400 active:scale-95 transition-all">
+          <Calculator className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Simulador</span>
         </a>
         <a href="/#contacto" className="flex flex-col items-center justify-center gap-1 text-zinc-400 active:text-emerald-400 active:scale-95 transition-all">
           <Phone className="w-5 h-5" />
