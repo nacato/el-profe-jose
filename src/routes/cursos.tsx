@@ -7,10 +7,10 @@ import { Wrench, ArrowLeft } from 'lucide-react'
 import { MotionWrapper } from '@/components/shared/MotionWrapper'
 
 export const Route = createFileRoute('/cursos')({
-  component: SimulatorPage,
+  component: CursosPage,
 })
 
-function SimulatorPage() {
+function CursosPage() {
   return (
     <main className="relative flex min-h-screen flex-col bg-black overflow-hidden">
       <LiquidBackground />
@@ -22,10 +22,10 @@ function SimulatorPage() {
             <Wrench className="w-8 h-8 text-emerald-400 animate-pulse" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Estamos en <span className="text-emerald-400">Construcción</span> 🚧
+            Próximamente <span className="text-emerald-400">Cursos</span> 🚧
           </h1>
           <p className="text-zinc-400 mb-8 text-lg">
-            El Simulador de Universidades (EPN) está siendo pulido con tecnología de punta para darte la mejor experiencia. ¡Vuelve muy pronto!
+            Estoy preparando los mejores cursos de matemáticas y tecnología. ¡Vuelve muy pronto para verlos!
           </p>
           <Button asChild className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold">
             <a href="/">
