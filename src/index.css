@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+  html {
+  scroll-behavior: smooth; /* Esto hace que el scroll sea suave al hacer clic */
+}
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.5rem;
+  }
+  
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  background-color: #09090b; /* Fondo oscuro puro */
+  color: hsl(var(--foreground));
+}
+
+/* Comportamiento de App Nativa en Móvil */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent; /* Quita el flash azul al tocar */
+  }
+  
+  body {
+    overscroll-behavior-y: none; /* Evita el rebote de scroll al llegar al final */
+  }
+
+  /* Quita la selección de texto en los botones (como en las apps) */
+  button, a {
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation; /* Desactiva el doble tap para zoom */
+  }
+
+  /* Añade padding inferior al contenido para que la barra flotante no tape nada */
+  @media (max-width: 768px) {
+    main {
+      padding-bottom: 5rem; /* Espacio exacto de la altura de la barra inferior */
+    }
+  }
+}
