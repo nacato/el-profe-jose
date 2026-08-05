@@ -11,12 +11,10 @@ export const Route = createRootRoute({
     meta: [
       { title: 'El Profe José | Soluciones Digitales y Académicas' },
       { name: 'description', content: 'Desarrollo Web, Soporte Técnico, Diseño y Clases de Matemáticas. ¡Prueba nuestro Simulador de Universidades!' },
-      
-      // --- Etiquetas para WhatsApp y Facebook ---
       { property: 'og:type', content: 'website' },
       { property: 'og:url', content: 'https://el-profe-jose.vercel.app/' },
-      { property: 'og:title', content: 'El Profe José | Simulador de Universidades y Soluciones Tech' },
-      { property: 'og:description', content: 'Plataforma de exámenes de práctica (EPN, ESPE, UCE) y servicios tecnológicos. ¡Visítame!' },
+      { property: 'og:title', content: 'El Profe José | Simulador de Universidades' },
+      { property: 'og:description', content: 'Plataforma de exámenes de práctica (EPN, ESPE, UCE) y servicios tecnológicos.' },
       { property: 'og:image', content: 'https://el-profe-jose.vercel.app/profejose.jpg' },
     ],
   }),

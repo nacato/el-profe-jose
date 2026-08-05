@@ -2,17 +2,15 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Building2, ArrowRight } from 'lucide-react'
 
-interface Props {
-  onSelect: (university: string) => void
-}
-
+// Definimos qué universidades tendremos
 const universities = [
   { id: 'epn', name: 'EPN', fullName: 'Escuela Politécnica Nacional', color: 'hover:border-blue-500' },
   { id: 'espe', name: 'ESPE', fullName: 'Escuela Politécnica del Ejército', color: 'hover:border-red-500' },
   { id: 'uce', name: 'UCE', fullName: 'Universidad Central del Ecuador', color: 'hover:border-emerald-500' }
 ]
 
-export function UniversitySelector({ onSelect }: Props) {
+// Esta función recibe la orden de abrir el examen cuando alguien hace clic
+export function UniversitySelector({ onSelect }: { onSelect: (university: string) => void }) {
   return (
     <div className="relative z-10 max-w-5xl mx-auto px-6 py-12 w-full">
       <h1 className="text-4xl font-bold text-white mb-3 text-center">Simulador de Universidades</h1>

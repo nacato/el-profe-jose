@@ -8,7 +8,6 @@ import { ContactSection } from '@/components/sections/ContactSection'
 import { Footer } from '@/components/layout/Footer'
 import { MobileNav } from '@/components/layout/MobileNav'
 import { FloatingSocials } from '@/components/layout/FloatingSocials'
-import { LiquidBackground } from '@/components/shared/LiquidBackground'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -16,19 +15,16 @@ export const Route = createFileRoute('/')({
 
 function HomePage() {
   return (
-    <main className="relative flex min-h-screen flex-col bg-transparent">
-      <LiquidBackground />
-      <div className="relative z-10 flex flex-col flex-1">
-        <Navbar />
-        <HeroSection />
-        <AboutSection />
-        <ServicesSection />
-        <CTASection />
-        <ContactSection />
-        <Footer />
-        <MobileNav />
-        <FloatingSocials />
-      </div>
+    <main className="relative flex min-h-screen flex-col bg-zinc-950">
+      <Navbar />
+      <HeroSection />
+      <AboutSection />
+      <ServicesSection />
+      <CTASection />
+      <ContactSection />
+      <Footer />
+      <MobileNav />
+      <FloatingSocials />
     </main>
   )
 }
