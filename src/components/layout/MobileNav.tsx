@@ -14,7 +14,7 @@ export function MobileNav() {
         </a>
         <a href="/simulador" className="flex flex-col items-center justify-center gap-1 text-zinc-400 active:text-emerald-400 active:scale-95 transition-all">
           <Calculator className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Simulador</span>
+          <span className="text-[10px] font-medium">Simulador U</span>
         </a>
         <a href="/#contacto" className="flex flex-col items-center justify-center gap-1 text-zinc-400 active:text-emerald-400 active:scale-95 transition-all">
           <Phone className="w-5 h-5" />
