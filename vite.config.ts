@@ -16,4 +16,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  // AÑADE ESTA LÍNEA PARA ARREGLAR EL CONGELAMIENTO:
+  server: {
+    hmr: false
+  }
 })
