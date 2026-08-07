@@ -15,7 +15,6 @@ interface Question {
   options: string[]
 }
 
-// Sonidos SOLO para acierto, error o tiempo agotado
 const playSound = (type: 'correct' | 'wrong' | 'timeout') => {
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -61,7 +60,6 @@ export function ExamSimulator({ uniName, examId, examName }: { uniName: string, 
 
   useEffect(() => {
     const fetchQuestions = async () => {
-      // Aquí filtramos por el ID del examen seleccionado
       const { data } = await supabase.from('questions').select('*').eq('exam_id', examId)
       if (data) {
         const formattedQuestions = data.map(q => ({
@@ -85,7 +83,7 @@ export function ExamSimulator({ uniName, examId, examName }: { uniName: string, 
           const next = prev - 1
           if (next <= 0) {
             if (timerRef.current) clearInterval(timerRef.current)
-            handleAnswer(-1, true) // Tiempo agotado
+            handleAnswer(-1, true)
             return 0
           }
           return next
@@ -171,83 +169,106 @@ export function ExamSimulator({ uniName, examId, examName }: { uniName: string, 
   const timePercent = (timeLeft / (currentQuestion.time_limit || 30)) * 100
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-slate-50 pt-24 pb-12 px-4 w-full">
-      <div className="max-w-3xl mx-auto w-full relative z-10 flex flex-col items-center">
+    <div className="min-h-screen bg-slate-50 pt-20 pb-12 px-4 w-full">
+      <div className="max-w-6xl mx-auto w-full flex flex-col lg:flex-row gap-6">
         
-        {/* Encabezado */}
-        <div className="text-center mb-8 w-full border-b-2 border-[#002A5C] pb-4">
-          <h1 className="text-2xl sm:text-3xl text-[#002A5C] font-bold mb-2 uppercase tracking-wide">Examen {uniName}</h1>
-          <p className="text-slate-500 text-sm font-medium mb-4">{examName}</p>
-          
-          <div className="w-full bg-slate-200 rounded-full h-1.5 mb-3 mt-4">
-            <div className="bg-[#F2A900] h-1.5 rounded-full transition-all duration-500" style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}></div>
-          </div>
-          <p className="text-slate-500 text-xs sm:text-sm font-medium">Pregunta {currentIndex + 1} de {questions.length}</p>
-        </div>
-
-        {/* Tarjeta principal institucional */}
-        <div className="bg-white border border-slate-200 shadow-lg rounded-lg p-6 sm:p-10 w-full flex flex-col items-center">
-          
-          {/* Cronómetro */}
-          <div className="flex flex-col items-center justify-center mb-8">
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-md border font-mono text-lg sm:text-xl font-bold ${timeLeft <= 5 ? 'bg-red-50 border-red-600 text-red-600 animate-pulse' : 'bg-[#002A5C] border-[#002A5C] text-white'}`}>
-              <Timer className="w-5 h-5" />
-              {timeLeft}s
+        {/* Columna Izquierda: Pregunta y Opciones */}
+        <div className="flex-1">
+          {/* Barra de tiempo superior estilo Senescyt */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-4 mb-6 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">{uniName} - {examName}</p>
+              <p className="text-sm text-slate-700 font-bold">Pregunta {currentIndex + 1} de {questions.length}</p>
             </div>
-            <div className="w-full bg-slate-200 rounded-full h-1.5 mt-3">
-              <div className={`h-1.5 rounded-full transition-all duration-1000 ease-linear ${timeLeft <= 5 ? 'bg-red-600' : 'bg-[#F2A900]'}`} style={{ width: `${timePercent}%` }}></div>
+            <div className="flex items-center gap-3">
+               <div className="hidden sm:block w-24 bg-slate-200 rounded-full h-2">
+                <div className={`h-2 rounded-full transition-all duration-1000 ease-linear ${timeLeft <= 5 ? 'bg-red-600' : 'bg-[#F2A900]'}`} style={{ width: `${timePercent}%` }}></div>
+              </div>
+              <div className={`flex items-center gap-2 px-4 py-2 rounded border font-mono text-lg font-bold ${timeLeft <= 5 ? 'bg-red-50 border-red-600 text-red-600 animate-pulse' : 'bg-[#002A5C] border-[#002A5C] text-white'}`}>
+                <Timer className="w-5 h-5" />
+                {timeLeft}s
+              </div>
             </div>
           </div>
 
-          <p className="text-base sm:text-xl text-slate-800 font-semibold mb-8 text-center break-words max-w-xl">
-            {currentQuestion.text}
-          </p>
-          
-          {/* Opciones */}
-          <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 w-full max-w-lg">
-            {currentQuestion.options.map((opt, idx) => {
-              let bgClass = 'bg-white border-slate-300 text-slate-700 hover:border-[#002A5C] hover:bg-slate-50'
-              
-              if (isAnswered) {
-                if (idx === currentQuestion.correct_answer) {
-                  bgClass = 'bg-green-50 border-green-600 text-green-800'
-                } else if (idx === selectedOption) {
-                  bgClass = 'bg-red-50 border-red-600 text-red-800'
-                } else {
-                  bgClass = 'bg-white border-slate-200 text-slate-400 opacity-60'
+          {/* Tarjeta de la Pregunta */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 sm:p-8">
+            <p className="text-base sm:text-lg text-slate-800 font-semibold mb-8 break-words">
+              {currentQuestion.text}
+            </p>
+            
+            {/* Opciones estilo a, b, c, d */}
+            <div className="flex flex-col gap-3">
+              {currentQuestion.options.map((opt, idx) => {
+                let bgClass = 'bg-white border-slate-300 text-slate-700 hover:border-[#002A5C] hover:bg-slate-50'
+                
+                if (isAnswered) {
+                  if (idx === currentQuestion.correct_answer) {
+                    bgClass = 'bg-green-50 border-green-600 text-green-800'
+                  } else if (idx === selectedOption) {
+                    bgClass = 'bg-red-50 border-red-600 text-red-800'
+                  } else {
+                    bgClass = 'bg-white border-slate-200 text-slate-400 opacity-60'
+                  }
                 }
-              }
 
-              return (
-                <button
-                  key={idx}
-                  onClick={() => handleAnswer(idx)}
-                  disabled={isAnswered}
-                  className={`w-full px-5 py-3 sm:py-4 rounded-md border transition-all break-words flex items-center gap-4 shadow-sm ${bgClass}`}
-                >
-                  <span className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-md text-xs sm:text-sm font-bold flex-shrink-0 ${
-                    isAnswered && idx === currentQuestion.correct_answer ? 'bg-green-600 text-white' : 
-                    isAnswered && idx === selectedOption ? 'bg-red-600 text-white' : 
-                    'bg-[#002A5C] text-white'
-                  }`}>
-                    {String.fromCharCode(65 + idx)}
-                  </span>
-                  
-                  <span className="flex-1 text-sm sm:text-base text-left">{opt}</span>
-                  
-                  {isAnswered && idx === currentQuestion.correct_answer && <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 ml-1" />}
-                  {isAnswered && idx === selectedOption && idx !== currentQuestion.correct_answer && <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 ml-1" />}
-                </button>
-              )
-            })}
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleAnswer(idx)}
+                    disabled={isAnswered}
+                    className={`w-full px-5 py-3 rounded-md border transition-all break-words flex items-center gap-4 shadow-sm ${bgClass}`}
+                  >
+                    <span className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-bold flex-shrink-0 ${
+                      isAnswered && idx === currentQuestion.correct_answer ? 'bg-green-600 text-white' : 
+                      isAnswered && idx === selectedOption ? 'bg-red-600 text-white' : 
+                      'bg-[#002A5C] text-white'
+                    }`}>
+                      {String.fromCharCode(97 + idx)} {/* a, b, c, d */}
+                    </span>
+                    
+                    <span className="flex-1 text-sm sm:text-base text-left">{opt}</span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </div>
+
+        {/* Columna Derecha: Mapa de Preguntas (Estilo Senescyt) - Oculto en móviles */}
+        <aside className="hidden lg:block w-64">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 sticky top-24">
+            <h3 className="text-sm font-bold text-slate-700 mb-4 border-b pb-2">Mapa de Preguntas</h3>
+            <div className="grid grid-cols-5 gap-2">
+              {questions.map((_, idx) => {
+                let numClass = 'bg-slate-100 text-slate-500 border-slate-200'
+                
+                if (idx === currentIndex) {
+                  numClass = 'bg-[#002A5C] text-white border-[#002A5C] ring-2 ring-[#F2A900] ring-offset-1'
+                } else if (idx < currentIndex) {
+                  numClass = 'bg-green-100 text-green-600 border-green-200'
+                }
+
+                return (
+                  <div key={idx} className={`w-10 h-10 flex items-center justify-center rounded border text-sm font-bold ${numClass}`}>
+                    {idx + 1}
+                  </div>
+                )
+              })}
+            </div>
+            <div className="mt-6 text-xs text-slate-500 space-y-2">
+              <div className="flex items-center gap-2"><div className="w-4 h-4 bg-[#002A5C] rounded"></div> Actual</div>
+              <div className="flex items-center gap-2"><div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div> Respondida</div>
+              <div className="flex items-center gap-2"><div className="w-4 h-4 bg-slate-100 border border-slate-200 rounded"></div> Pendiente</div>
+            </div>
+          </div>
+        </aside>
       </div>
 
       {/* VENTANITA FLOTANTE (MODAL) PARA LA EXPLICACIÓN */}
       {isAnswered && (
         <div className="fixed inset-0 z-50 bg-[#002A5C]/80 backdrop-blur-sm flex justify-center items-center p-4">
-          <div className={`bg-white shadow-2xl rounded-xl max-w-md w-full overflow-hidden border-t-8 ${selectedOption === currentQuestion.correct_answer ? 'border-green-600' : 'border-red-600'}`}>
+          <div className={`bg-white shadow-2xl rounded-xl max-w-2xl w-full overflow-hidden border-t-8 ${selectedOption === currentQuestion.correct_answer ? 'border-green-600' : 'border-red-600'}`}>
             
             <div className="p-6 sm:p-8 text-center">
               <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${selectedOption === currentQuestion.correct_answer ? 'bg-green-100' : 'bg-red-100'}`}>
