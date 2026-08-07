@@ -2,141 +2,199 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 
 export function AdminDashboard() {
+  const [universities, setUniversities] = useState<any[]>([])
+  const [exams, setExams] = useState<any[]>([])
   const [questions, setQuestions] = useState<any[]>([])
-  
-  // UsamosRefs para que no se congele
-  const textRef = useRef<HTMLInputElement>(null)
-  const opt1Ref = useRef<HTMLInputElement>(null)
-  const opt2Ref = useRef<HTMLInputElement>(null)
-  const opt3Ref = useRef<HTMLInputElement>(null)
-  const opt4Ref = useRef<HTMLInputElement>(null)
-  const correctRef = useRef<HTMLSelectElement>(null)
-  const uniRef = useRef<HTMLSelectElement>(null)
-  const explanationRef = useRef<HTMLTextAreaElement>(null)
-  const timeRef = useRef<HTMLSelectElement>(null)
 
-  const fetchQuestions = async () => {
-    const { data } = await supabase.from('questions').select('*').order('created_at', { ascending: false })
-    if (data) setQuestions(data)
+  // Refs para Universidades
+  const uniShortRef = useRef<HTMLInputElement>(null)
+  const uniFullRef = useRef<HTMLInputElement>(null)
+
+  // Refs para Exámenes
+  const examUniRef = useRef<HTMLSelectElement>(null)
+  const examNameRef = useRef<HTMLInputElement>(null)
+
+  // Refs para Preguntas
+  const qExamRef = useRef<HTMLSelectElement>(null)
+  const qTextRef = useRef<HTMLInputElement>(null)
+  const qOpt1Ref = useRef<HTMLInputElement>(null)
+  const qOpt2Ref = useRef<HTMLInputElement>(null)
+  const qOpt3Ref = useRef<HTMLInputElement>(null)
+  const qOpt4Ref = useRef<HTMLInputElement>(null)
+  const qCorrectRef = useRef<HTMLSelectElement>(null)
+  const qExplanationRef = useRef<HTMLTextAreaElement>(null)
+  const qTimeRef = useRef<HTMLSelectElement>(null)
+
+  const fetchAll = async () => {
+    const { data: unis } = await supabase.from('universities').select('*').order('created_at', { ascending: false })
+    if (unis) setUniversities(unis)
+
+    const { data: exs } = await supabase.from('exams').select('*, universities(short_name)').order('created_at', { ascending: false })
+    if (exs) setExams(exs)
+
+    const { data: qs } = await supabase.from('questions').select('*, exams(name, universities(short_name))').order('created_at', { ascending: false })
+    if (qs) setQuestions(qs)
   }
 
   useEffect(() => {
-    fetchQuestions()
+    fetchAll()
   }, [])
 
-  const saveQuestion = async () => {
-    const newQuestion = {
-      text: textRef.current?.value,
-      option1: opt1Ref.current?.value,
-      option2: opt2Ref.current?.value,
-      option3: opt3Ref.current?.value,
-      option4: opt4Ref.current?.value,
-      correct_answer: Number(correctRef.current?.value),
-      university: uniRef.current?.value,
-      explanation: explanationRef.current?.value,
-      time_limit: Number(timeRef.current?.value)
-    }
+  // --- Funciones de Universidades ---
+  const addUni = async () => {
+    const short = uniShortRef.current?.value
+    const full = uniFullRef.current?.value
+    if (!short) return alert('Pon la sigla (ej: EPN)')
+    await supabase.from('universities').insert([{ short_name: short.toUpperCase(), full_name: full }])
+    if(uniShortRef.current) uniShortRef.current.value = ''
+    if(uniFullRef.current) uniFullRef.current.value = ''
+    fetchAll()
+  }
 
-    if (!newQuestion.text || !newQuestion.option1) {
-      alert('Por favor llena al menos la pregunta y la opción 1')
-      return
-    }
-
-    const { error } = await supabase.from('questions').insert([newQuestion])
-
-    if (error) {
-      alert('Error al guardar: ' + error.message)
-    } else {
-      alert('¡Pregunta guardada con éxito!')
-      if(textRef.current) textRef.current.value = ''
-      if(opt1Ref.current) opt1Ref.current.value = ''
-      if(opt2Ref.current) opt2Ref.current.value = ''
-      if(opt3Ref.current) opt3Ref.current.value = ''
-      if(opt4Ref.current) opt4Ref.current.value = ''
-      if(explanationRef.current) explanationRef.current.value = ''
-      fetchQuestions()
+  const deleteUni = async (id: number) => {
+    if (confirm('¿Borrar universidad? Se borrarán también sus exámenes y preguntas.')) {
+      await supabase.from('universities').delete().eq('id', id)
+      fetchAll()
     }
   }
 
+  // --- Funciones de Exámenes ---
+  const addExam = async () => {
+    const uniId = examUniRef.current?.value
+    const name = examNameRef.current?.value
+    if (!uniId || !name) return alert('Selecciona universidad y pon nombre al examen')
+    await supabase.from('exams').insert([{ university_id: uniId, name }])
+    if(examNameRef.current) examNameRef.current.value = ''
+    fetchAll()
+  }
+
+  const deleteExam = async (id: number) => {
+    if (confirm('¿Borrar examen? Se borrarán también sus preguntas.')) {
+      await supabase.from('exams').delete().eq('id', id)
+      fetchAll()
+    }
+  }
+
+  // --- Funciones de Preguntas ---
+  const addQuestion = async () => {
+    const examId = qExamRef.current?.value
+    const text = qTextRef.current?.value
+    const opt1 = qOpt1Ref.current?.value
+    if (!examId || !text || !opt1) return alert('Selecciona examen y completa la pregunta y opción 1')
+    
+    await supabase.from('questions').insert([{
+      exam_id: examId,
+      text,
+      option1: opt1,
+      option2: qOpt2Ref.current?.value,
+      option3: qOpt3Ref.current?.value,
+      option4: qOpt4Ref.current?.value,
+      correct_answer: Number(qCorrectRef.current?.value),
+      explanation: qExplanationRef.current?.value,
+      time_limit: Number(qTimeRef.current?.value)
+    }])
+
+    if(qTextRef.current) qTextRef.current.value = ''
+    if(qOpt1Ref.current) qOpt1Ref.current.value = ''
+    if(qOpt2Ref.current) qOpt2Ref.current.value = ''
+    if(qOpt3Ref.current) qOpt3Ref.current.value = ''
+    if(qOpt4Ref.current) qOpt4Ref.current.value = ''
+    if(qExplanationRef.current) qExplanationRef.current.value = ''
+    fetchAll()
+  }
+
   const deleteQuestion = async (id: number) => {
-    if (confirm('¿Seguro que quieres borrar esta pregunta?')) {
+    if (confirm('¿Borrar pregunta?')) {
       await supabase.from('questions').delete().eq('id', id)
-      fetchQuestions()
+      fetchAll()
     }
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-3xl text-white font-bold mb-8">Panel de Administración</h1>
-      
-      <div className="bg-zinc-900 p-6 rounded-xl border border-zinc-800 mb-8">
-        <input 
-          ref={textRef}
-          placeholder="Escribe tu pregunta aquí..."
-          className="w-full bg-black text-white p-3 rounded mb-4 border border-zinc-700"
-        />
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <input ref={opt1Ref} placeholder="Opción 1" className="w-full bg-black text-white p-3 rounded border border-zinc-700" />
-          <input ref={opt2Ref} placeholder="Opción 2" className="w-full bg-black text-white p-3 rounded border border-zinc-700" />
-          <input ref={opt3Ref} placeholder="Opción 3" className="w-full bg-black text-white p-3 rounded border border-zinc-700" />
-          <input ref={opt4Ref} placeholder="Opción 4" className="w-full bg-black text-white p-3 rounded border border-zinc-700" />
+    <div className="max-w-4xl mx-auto p-8 space-y-12">
+      <h1 className="text-3xl text-white font-bold">Panel de Administración</h1>
+
+      {/* SECCIÓN UNIVERSIDADES */}
+      <div className="bg-zinc-900 p-6 rounded-xl border border-zinc-800">
+        <h2 className="text-xl text-emerald-400 font-bold mb-4">1. Universidades</h2>
+        <div className="flex gap-2 mb-4">
+          <input ref={uniShortRef} placeholder="Sigla (ej: EPN)" className="w-1/3 bg-black text-white p-2 rounded border border-zinc-700" />
+          <input ref={uniFullRef} placeholder="Nombre Completo" className="flex-1 bg-black text-white p-2 rounded border border-zinc-700" />
+          <button onClick={addUni} className="bg-emerald-500 text-black font-bold px-4 rounded">Añadir</button>
         </div>
-        
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <select ref={correctRef} className="w-full bg-black text-white p-3 rounded border border-zinc-700">
-            <option value={0}>Opción 1 correcta</option>
-            <option value={1}>Opción 2 correcta</option>
-            <option value={2}>Opción 3 correcta</option>
-            <option value={3}>Opción 4 correcta</option>
-          </select>
-
-          <select ref={uniRef} className="w-full bg-black text-white p-3 rounded border border-zinc-700">
-            <option value="EPN">Examen EPN</option>
-            <option value="ESPE">Examen ESPE</option>
-            <option value="UCE">Examen UCE</option>
-          </select>
-
-          <select ref={timeRef} className="w-full bg-black text-white p-3 rounded border border-zinc-700">
-            <option value={10}>10 segundos</option>
-            <option value={20}>20 segundos</option>
-            <option value={30}>30 segundos</option>
-            <option value={60}>60 segundos</option>
-          </select>
-        </div>
-
-        <textarea 
-          ref={explanationRef}
-          placeholder="Escribe aquí la explicación de la respuesta..."
-          className="w-full bg-black text-white p-3 rounded mb-4 border border-zinc-700 h-24"
-        ></textarea>
-
-        <button onClick={saveQuestion} className="bg-emerald-500 text-black font-bold p-3 rounded w-full">
-          GUARDAR PREGUNTA EN INTERNET
-        </button>
+        {universities.map(u => (
+          <div key={u.id} className="flex justify-between bg-zinc-800 p-2 rounded mb-2 text-white text-sm">
+            <span><b>{u.short_name}</b> - {u.full_name}</span>
+            <button onClick={() => deleteUni(u.id)} className="text-red-400 hover:underline">Borrar</button>
+          </div>
+        ))}
       </div>
 
-      <h2 className="text-2xl text-white font-bold mb-4">Preguntas Guardadas: {questions.length}</h2>
-      
-      {questions.map(q => (
-        <div key={q.id} className="bg-zinc-800 p-4 rounded mb-4 flex justify-between items-start break-words">
-          <div className="mr-4">
-            <div className="flex gap-2 mb-2">
-              <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded font-bold">{q.university}</span>
-              <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-bold">⏱ {q.time_limit || 30} seg</span>
-            </div>
-            <p className="text-white font-bold mt-2">{q.text}</p>
-            <p className="text-zinc-400 text-sm mt-1">
-              1: {q.option1} | 2: {q.option2} | 3: {q.option3} | 4: {q.option4} (Correcta: {q.correct_answer + 1})
-            </p>
-            {q.explanation && (
-              <p className="text-zinc-500 text-xs mt-2 italic">Explicación: {q.explanation}</p>
-            )}
-          </div>
-          <button onClick={() => deleteQuestion(q.id)} className="bg-red-500/20 text-red-400 px-3 py-1 rounded hover:bg-red-500/40 flex-shrink-0">
-            Borrar
-          </button>
+      {/* SECCIÓN EXÁMENES */}
+      <div className="bg-zinc-900 p-6 rounded-xl border border-zinc-800">
+        <h2 className="text-xl text-emerald-400 font-bold mb-4">2. Exámenes</h2>
+        <div className="flex gap-2 mb-4">
+          <select ref={examUniRef} className="w-1/3 bg-black text-white p-2 rounded border border-zinc-700">
+            <option value="">Seleccionar Univ...</option>
+            {universities.map(u => <option key={u.id} value={u.id}>{u.short_name}</option>)}
+          </select>
+          <input ref={examNameRef} placeholder="Nombre del Examen (Ej: Aritmética 2024)" className="flex-1 bg-black text-white p-2 rounded border border-zinc-700" />
+          <button onClick={addExam} className="bg-emerald-500 text-black font-bold px-4 rounded">Añadir</button>
         </div>
-      ))}
+        {exams.map(e => (
+          <div key={e.id} className="flex justify-between bg-zinc-800 p-2 rounded mb-2 text-white text-sm">
+            <span><b className="text-cyan-400">{e.universities?.short_name}</b> - {e.name}</span>
+            <button onClick={() => deleteExam(e.id)} className="text-red-400 hover:underline">Borrar</button>
+          </div>
+        ))}
+      </div>
+
+      {/* SECCIÓN PREGUNTAS */}
+      <div className="bg-zinc-900 p-6 rounded-xl border border-zinc-800">
+        <h2 className="text-xl text-emerald-400 font-bold mb-4">3. Preguntas</h2>
+        
+        <select ref={qExamRef} className="w-full bg-black text-white p-2 rounded border border-zinc-700 mb-2">
+          <option value="">Seleccionar Examen...</option>
+          {exams.map(e => <option key={e.id} value={e.id}>{e.universities?.short_name} - {e.name}</option>)}
+        </select>
+
+        <input ref={qTextRef} placeholder="Pregunta..." className="w-full bg-black text-white p-2 rounded border border-zinc-700 mb-2" />
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          <input ref={qOpt1Ref} placeholder="Opción 1" className="bg-black text-white p-2 rounded border border-zinc-700" />
+          <input ref={qOpt2Ref} placeholder="Opción 2" className="bg-black text-white p-2 rounded border border-zinc-700" />
+          <input ref={qOpt3Ref} placeholder="Opción 3" className="bg-black text-white p-2 rounded border border-zinc-700" />
+          <input ref={qOpt4Ref} placeholder="Opción 4" className="bg-black text-white p-2 rounded border border-zinc-700" />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          <select ref={qCorrectRef} className="bg-black text-white p-2 rounded border border-zinc-700">
+            <option value="0">Correcta: Opción 1</option>
+            <option value="1">Correcta: Opción 2</option>
+            <option value="2">Correcta: Opción 3</option>
+            <option value="3">Correcta: Opción 4</option>
+          </select>
+          <select ref={qTimeRef} className="bg-black text-white p-2 rounded border border-zinc-700">
+            <option value="10">10 segundos</option>
+            <option value="20">20 segundos</option>
+            <option value="30">30 segundos</option>
+            <option value="60">60 segundos</option>
+          </select>
+        </div>
+
+        <textarea ref={qExplanationRef} placeholder="Explicación..." className="w-full bg-black text-white p-2 rounded border border-zinc-700 mb-2 h-20"></textarea>
+
+        <button onClick={addQuestion} className="bg-emerald-500 text-black font-bold p-2 rounded w-full">AÑADIR PREGUNTA</button>
+
+        {questions.map(q => (
+          <div key={q.id} className="flex justify-between bg-zinc-800 p-2 rounded mb-2 mt-4 text-white text-sm">
+            <div className="mr-2">
+              <span className="text-xs text-cyan-400">{q.exams?.universities?.short_name} - {q.exams?.name}</span>
+              <p className="text-sm">{q.text}</p>
+            </div>
+            <button onClick={() => deleteQuestion(q.id)} className="text-red-400 hover:underline">Borrar</button>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

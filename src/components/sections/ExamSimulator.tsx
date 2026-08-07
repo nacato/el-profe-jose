@@ -48,7 +48,7 @@ const playSound = (type: 'correct' | 'wrong' | 'timeout') => {
   }
 }
 
-export function ExamSimulator({ uniName }: { uniName: string }) {
+export function ExamSimulator({ uniName, examId, examName }: { uniName: string, examId: number, examName: string }) {
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(true)
   
@@ -61,7 +61,8 @@ export function ExamSimulator({ uniName }: { uniName: string }) {
 
   useEffect(() => {
     const fetchQuestions = async () => {
-      const { data } = await supabase.from('questions').select('*').eq('university', uniName)
+      // Aquí filtramos por el ID del examen seleccionado
+      const { data } = await supabase.from('questions').select('*').eq('exam_id', examId)
       if (data) {
         const formattedQuestions = data.map(q => ({
           ...q,
@@ -72,7 +73,7 @@ export function ExamSimulator({ uniName }: { uniName: string }) {
       setLoading(false)
     }
     fetchQuestions()
-  }, [uniName])
+  }, [examId])
 
   useEffect(() => {
     if (questions.length > 0 && !isFinished && selectedOption === null) {
@@ -99,18 +100,18 @@ export function ExamSimulator({ uniName }: { uniName: string }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-[#020617]">
-        <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+      <div className="flex justify-center items-center min-h-screen bg-slate-50">
+        <Loader2 className="w-8 h-8 text-[#002A5C] animate-spin" />
       </div>
     )
   }
 
   if (questions.length === 0) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-[#020617] px-6">
-        <div className="text-center">
-          <p className="text-slate-500 py-8 px-8 border border-dashed border-slate-700 rounded-lg max-w-md text-sm sm:text-base">
-            Aún no hay preguntas cargadas para el examen de {uniName}.
+      <div className="flex justify-center items-center min-h-screen bg-slate-50 px-6 pt-20">
+        <div className="text-center bg-white border border-slate-200 shadow-sm rounded-lg max-w-md p-8">
+          <p className="text-slate-600 text-sm sm:text-base">
+            Aún no hay preguntas cargadas para el examen de {examName} ({uniName}).
           </p>
         </div>
       </div>
@@ -120,18 +121,18 @@ export function ExamSimulator({ uniName }: { uniName: string }) {
   if (isFinished) {
     const passed = score >= Math.ceil(questions.length * 0.7)
     return (
-      <div className="flex justify-center items-center min-h-screen bg-[#020617] px-4 sm:px-6">
-        <div className="bg-[#0f172a]/80 border border-cyan-800/50 rounded-2xl p-6 sm:p-10 shadow-[0_0_50px_rgba(34,211,238,0.2)] text-center max-w-lg w-full backdrop-blur-sm">
-          <h1 className="text-xl sm:text-2xl text-slate-400 mb-2">Examen Finalizado</h1>
-          <div className={`text-5xl sm:text-7xl font-bold mb-6 ${passed ? 'text-emerald-400' : 'text-red-400'}`}>
+      <div className="flex justify-center items-center min-h-screen bg-slate-50 px-4 sm:px-6 pt-20">
+        <div className="bg-white border border-slate-200 shadow-lg rounded-lg p-8 sm:p-10 text-center max-w-lg w-full">
+          <h1 className="text-xl sm:text-2xl text-slate-500 mb-2 font-semibold uppercase tracking-wide">Examen Finalizado</h1>
+          <div className={`text-5xl sm:text-7xl font-bold mb-6 ${passed ? 'text-[#002A5C]' : 'text-red-600'}`}>
             {score} / {questions.length}
           </div>
-          <p className={`font-semibold mb-8 text-base sm:text-lg ${passed ? 'text-emerald-400' : 'text-red-400'}`}>
+          <p className={`font-semibold mb-8 text-base sm:text-lg ${passed ? 'text-green-600' : 'text-red-600'}`}>
             {passed ? '✅ ¡Felicidades, aprobaste!' : '❌ No aprobaste. Sigue practicando.'}
           </p>
           <button 
             onClick={() => { setCurrentIndex(0); setSelectedOption(null); setScore(0); setIsFinished(false) }}
-            className="bg-cyan-500 text-white font-bold px-6 sm:px-8 py-3 rounded-lg hover:bg-cyan-400 inline-flex items-center shadow-[0_0_20px_rgba(34,211,238,0.4)] text-sm sm:text-base"
+            className="bg-[#002A5C] text-white font-bold px-6 sm:px-8 py-3 rounded-md hover:bg-[#001f47] inline-flex items-center shadow-sm text-sm sm:text-base"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
             Intentar de nuevo
@@ -158,7 +159,6 @@ export function ExamSimulator({ uniName }: { uniName: string }) {
     }
   }
 
-  // FUNCIÓN PARA PASAR A LA SIGUIENTE MANUALMENTE
   const handleNext = () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(prev => prev + 1)
@@ -171,48 +171,50 @@ export function ExamSimulator({ uniName }: { uniName: string }) {
   const timePercent = (timeLeft / (currentQuestion.time_limit || 30)) * 100
 
   return (
-    <div className="flex flex-col justify-center min-h-screen bg-[#020617] py-10 sm:py-12 px-4 w-full">
-      <div className="fixed top-0 left-1/4 w-96 h-96 bg-cyan-600/10 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-blue-700/10 rounded-full blur-[120px] pointer-events-none"></div>
-
-      <div className="max-w-2xl mx-auto w-full relative z-10">
+    <div className="flex flex-col items-center min-h-screen bg-slate-50 pt-24 pb-12 px-4 w-full">
+      <div className="max-w-3xl mx-auto w-full relative z-10 flex flex-col items-center">
         
-        <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-xl sm:text-2xl text-cyan-400 font-bold mb-4 sm:mb-6 tracking-wider uppercase">Examen {uniName}</h1>
+        {/* Encabezado */}
+        <div className="text-center mb-8 w-full border-b-2 border-[#002A5C] pb-4">
+          <h1 className="text-2xl sm:text-3xl text-[#002A5C] font-bold mb-2 uppercase tracking-wide">Examen {uniName}</h1>
+          <p className="text-slate-500 text-sm font-medium mb-4">{examName}</p>
           
-          <div className="w-full bg-slate-800 rounded-full h-2 mb-3">
-            <div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-500" style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}></div>
+          <div className="w-full bg-slate-200 rounded-full h-1.5 mb-3 mt-4">
+            <div className="bg-[#F2A900] h-1.5 rounded-full transition-all duration-500" style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}></div>
           </div>
-          <p className="text-slate-500 text-xs sm:text-sm">Pregunta {currentIndex + 1} de {questions.length}</p>
+          <p className="text-slate-500 text-xs sm:text-sm font-medium">Pregunta {currentIndex + 1} de {questions.length}</p>
         </div>
 
-        <div className="bg-[#0f172a]/80 border border-cyan-800/30 rounded-xl sm:rounded-2xl p-5 sm:p-8 backdrop-blur-md shadow-[0_0_30px_rgba(34,211,238,0.15)]">
+        {/* Tarjeta principal institucional */}
+        <div className="bg-white border border-slate-200 shadow-lg rounded-lg p-6 sm:p-10 w-full flex flex-col items-center">
           
-          <div className="flex flex-col items-center justify-center mb-6">
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-full border font-mono text-lg sm:text-xl font-bold ${timeLeft <= 5 ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' : 'bg-slate-800 border-slate-700 text-cyan-400'}`}>
+          {/* Cronómetro */}
+          <div className="flex flex-col items-center justify-center mb-8">
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-md border font-mono text-lg sm:text-xl font-bold ${timeLeft <= 5 ? 'bg-red-50 border-red-600 text-red-600 animate-pulse' : 'bg-[#002A5C] border-[#002A5C] text-white'}`}>
               <Timer className="w-5 h-5" />
               {timeLeft}s
             </div>
-            <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2">
-              <div className={`h-1.5 rounded-full transition-all duration-1000 ease-linear ${timeLeft <= 5 ? 'bg-red-500' : 'bg-cyan-500'}`} style={{ width: `${timePercent}%` }}></div>
+            <div className="w-full bg-slate-200 rounded-full h-1.5 mt-3">
+              <div className={`h-1.5 rounded-full transition-all duration-1000 ease-linear ${timeLeft <= 5 ? 'bg-red-600' : 'bg-[#F2A900]'}`} style={{ width: `${timePercent}%` }}></div>
             </div>
           </div>
 
-          <p className="text-base sm:text-xl text-white font-semibold mb-6 sm:mb-8 text-center break-words">
+          <p className="text-base sm:text-xl text-slate-800 font-semibold mb-8 text-center break-words max-w-xl">
             {currentQuestion.text}
           </p>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          {/* Opciones */}
+          <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 w-full max-w-lg">
             {currentQuestion.options.map((opt, idx) => {
-              let bgClass = 'bg-[#1e293b] border-slate-700 text-slate-300 hover:border-cyan-500/50 hover:bg-slate-800/50'
+              let bgClass = 'bg-white border-slate-300 text-slate-700 hover:border-[#002A5C] hover:bg-slate-50'
               
               if (isAnswered) {
                 if (idx === currentQuestion.correct_answer) {
-                  bgClass = 'bg-emerald-500/30 border-emerald-400 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]'
+                  bgClass = 'bg-green-50 border-green-600 text-green-800'
                 } else if (idx === selectedOption) {
-                  bgClass = 'bg-orange-500/30 border-orange-400 text-white shadow-[0_0_20px_rgba(249,115,22,0.4)]'
+                  bgClass = 'bg-red-50 border-red-600 text-red-800'
                 } else {
-                  bgClass = 'bg-[#1e293b] border-slate-800 text-slate-500 opacity-50'
+                  bgClass = 'bg-white border-slate-200 text-slate-400 opacity-60'
                 }
               }
 
@@ -221,59 +223,68 @@ export function ExamSimulator({ uniName }: { uniName: string }) {
                   key={idx}
                   onClick={() => handleAnswer(idx)}
                   disabled={isAnswered}
-                  className={`px-3 sm:px-5 py-3 sm:py-4 rounded-lg sm:rounded-xl border transition-all break-words flex items-center gap-3 sm:gap-4 text-left ${bgClass}`}
+                  className={`w-full px-5 py-3 sm:py-4 rounded-md border transition-all break-words flex items-center gap-4 shadow-sm ${bgClass}`}
                 >
-                  <span className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-xs sm:text-sm font-bold flex-shrink-0 ${
-                    isAnswered && idx === currentQuestion.correct_answer ? 'bg-emerald-500 text-white' : 
-                    isAnswered && idx === selectedOption ? 'bg-orange-500 text-white' : 
-                    'bg-slate-700 text-cyan-400'
+                  <span className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-md text-xs sm:text-sm font-bold flex-shrink-0 ${
+                    isAnswered && idx === currentQuestion.correct_answer ? 'bg-green-600 text-white' : 
+                    isAnswered && idx === selectedOption ? 'bg-red-600 text-white' : 
+                    'bg-[#002A5C] text-white'
                   }`}>
                     {String.fromCharCode(65 + idx)}
                   </span>
                   
-                  <span className="flex-1 text-sm sm:text-base">{opt}</span>
+                  <span className="flex-1 text-sm sm:text-base text-left">{opt}</span>
                   
-                  {isAnswered && idx === currentQuestion.correct_answer && <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-300 flex-shrink-0 ml-1" />}
-                  {isAnswered && idx === selectedOption && idx !== currentQuestion.correct_answer && <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-orange-300 flex-shrink-0 ml-1" />}
+                  {isAnswered && idx === currentQuestion.correct_answer && <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 ml-1" />}
+                  {isAnswered && idx === selectedOption && idx !== currentQuestion.correct_answer && <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 ml-1" />}
                 </button>
               )
             })}
           </div>
+        </div>
+      </div>
 
-          {/* EXPLICACIÓN Y BOTÓN SIGUIENTE */}
-          {isAnswered && (
-            <div className={`mt-6 p-4 sm:p-5 rounded-lg sm:rounded-xl border ${selectedOption === currentQuestion.correct_answer ? 'bg-emerald-950/40 border-emerald-800' : 'bg-red-950/40 border-red-800'}`}>
-              <h3 className={`font-bold mb-2 sm:mb-3 flex items-center gap-2 text-base sm:text-lg ${selectedOption === currentQuestion.correct_answer ? 'text-emerald-400' : 'text-red-400'}`}>
-                {selectedOption === currentQuestion.correct_answer ? <CheckCircle className="w-5 h-5 flex-shrink-0" /> : <XCircle className="w-5 h-5 flex-shrink-0" />}
-                <span className="break-words">
-                  {selectedOption === currentQuestion.correct_answer ? '¡Respuesta Correcta!' : selectedOption === -1 ? '¡Se acabó el tiempo!' : 'Respuesta Incorrecta'}
-                </span>
+      {/* VENTANITA FLOTANTE (MODAL) PARA LA EXPLICACIÓN */}
+      {isAnswered && (
+        <div className="fixed inset-0 z-50 bg-[#002A5C]/80 backdrop-blur-sm flex justify-center items-center p-4">
+          <div className={`bg-white shadow-2xl rounded-xl max-w-md w-full overflow-hidden border-t-8 ${selectedOption === currentQuestion.correct_answer ? 'border-green-600' : 'border-red-600'}`}>
+            
+            <div className="p-6 sm:p-8 text-center">
+              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${selectedOption === currentQuestion.correct_answer ? 'bg-green-100' : 'bg-red-100'}`}>
+                {selectedOption === currentQuestion.correct_answer ? <CheckCircle className="w-10 h-10 text-green-600" /> : <XCircle className="w-10 h-10 text-red-600" />}
+              </div>
+
+              <h3 className={`font-bold mb-4 text-xl sm:text-2xl ${selectedOption === currentQuestion.correct_answer ? 'text-green-700' : 'text-red-700'}`}>
+                {selectedOption === currentQuestion.correct_answer ? '¡Respuesta Correcta!' : selectedOption === -1 ? '¡Se acabó el tiempo!' : 'Respuesta Incorrecta'}
               </h3>
 
               {selectedOption !== currentQuestion.correct_answer && (
-                <p className="text-slate-200 text-xs sm:text-sm break-words mb-2">
-                  <span className="font-bold text-emerald-400">La respuesta correcta era:</span> {currentQuestion.options[currentQuestion.correct_answer]}
-                </p>
+                <div className="bg-slate-50 rounded-lg p-4 mb-4 text-left">
+                  <p className="text-slate-700 text-sm break-words flex">
+                    <span className="font-bold text-[#002A5C] mr-1">Correcta:</span> 
+                    <span>{currentQuestion.options[currentQuestion.correct_answer]}</span>
+                  </p>
+                </div>
               )}
 
-              <p className="text-slate-300 text-xs sm:text-sm break-words mb-4">
-                <span className="font-bold text-white">Por qué:</span> {currentQuestion.explanation || 'No hay explicación proporcionada.'}
-              </p>
-              
-              {/* BOTÓN VISIBLE PARA PASAR A LA SIGUIENTE */}
-              <div className="flex justify-end mt-4">
-                <button 
-                  onClick={handleNext}
-                  className="bg-cyan-500 text-white font-bold px-6 py-3 rounded-lg hover:bg-cyan-400 inline-flex items-center shadow-[0_0_20px_rgba(34,211,238,0.4)] text-sm sm:text-base"
-                >
-                  {currentIndex === questions.length - 1 ? 'Ver Resultados' : 'Siguiente Pregunta'}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </button>
+              <div className="bg-slate-50 rounded-lg p-4 mb-6 text-left">
+                <p className="text-slate-600 text-sm break-words flex">
+                  <span className="font-bold text-[#002A5C] mr-1">Por qué:</span> 
+                  <span>{currentQuestion.explanation || 'No hay explicación proporcionada.'}</span>
+                </p>
               </div>
+              
+              <button 
+                onClick={handleNext}
+                className="w-full bg-[#002A5C] text-white font-bold px-8 py-3 rounded-md hover:bg-[#001f47] inline-flex justify-center items-center shadow-sm text-base"
+              >
+                {currentIndex === questions.length - 1 ? 'Ver Resultados' : 'Siguiente Pregunta'}
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </button>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

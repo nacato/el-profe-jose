@@ -22,6 +22,7 @@ export function Footer() {
             <li>Diseño y Publicidad</li>
             <li>Soporte Técnico IT</li>
             <li>Clases de Matemáticas</li>
+             <li>simulador Examen Universidades</li>
           </ul>
         </div>
 
