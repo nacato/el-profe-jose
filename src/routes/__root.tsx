@@ -4,6 +4,7 @@ import '../index.css'
 export const Route = createRootRoute({
   component: () => (
     <html lang="es" className="dark">
+      {/* @ts-ignore */}
       <head>
         <title>El Profe José | Soluciones Académicas y Tecnológicas</title>
         <meta name="description" content="Plataforma de exámenes de práctica (Senescyt, EPN, ESPE, UCE) y servicios tecnológicos. Ing. José Ñacato." />
