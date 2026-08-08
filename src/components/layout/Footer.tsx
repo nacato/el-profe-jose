@@ -1,4 +1,5 @@
 import { GraduationCap, Mail, Phone } from 'lucide-react'
+import { VisitorCounter } from '@/components/sections/VisitorCounter'
 
 export function Footer() {
   return (
@@ -42,7 +43,14 @@ export function Footer() {
       
       <div className="mt-12 pt-8 border-t border-zinc-900 text-center text-xs text-zinc-500">
         © {new Date().getFullYear()} El Profe José. Todos los derechos reservados.
+        
+        {/* AQUÍ ESTÁ EL CONTADOR DE VISITAS */}
+        <div className="mt-4">
+          <VisitorCounter />
+        </div>
       </div>
+
+      
     </footer>
   )
 }
